@@ -1,0 +1,52 @@
+<div class="container notification">
+    <h2 class='text-center error-message'>Notify Me When Back InStock</h2>
+    <h2 class='text-center error-message text'>Please enter your phone number</h2>
+    <form action="Twilio_SMS" method="post" class="form-inventory">
+        <input type="text" name="PhoneNumber" id='phone' placeholder="Enter Your Phone Number" class="number"><br>
+        <imput type="hidden" name="Message" value="${pdict.name}">
+            <input type="submit" value="Save" class="check">
+    </form>
+    <h3 class='text-center error-message'>${pdict.phoneNumber}</h3>
+    <h3 class='text-center error-message'>${pdict.phoneNumber}</h3>
+</div>
+
+<style>
+    .form-inventory {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .notification {
+        border: 1px solid gray;
+        border-radius: 5px;
+        margin: 10px;
+    }
+</style>
+<script>
+    let check = document.querySelector(".check");
+    let number = document.querySelector(".number");
+    let text = document.querySelector(".text");
+
+    let regex = /^[\d,\s,\+,\-]{5,20}/;
+
+    check.addEventListener("click",(e)=>{
+        if(number.value ==""){
+            text.innerText = "Please enter your phone number";
+            text.style.color = "red";
+            e.preventDefault();
+        }
+        else if(number.value.match(regex)){
+            text.innerText = "The phone number is valid";
+            text.style.color = "green";
+            e.preventDefault();
+        }
+        else
+            {
+            text.innerText = "Oops! Your phone number is invalid";
+            text.style.color = "red";
+            e.preventDefault();
+            }
+    });
+</script>

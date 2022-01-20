@@ -1,0 +1,106 @@
+<input type="hidden" class="add-to-cart-url" value="${pdict.addToCartUrl}">
+<button class="notify-me-modal btn btn-primary" data-toggle="modal" data-target="#notifyMeModal"
+    data-pid="${product.id}" ${!product.readyToOrder || !product.available ? "" : "disabled"}>
+    <i class="fa fa-mobile"></i>
+    ${Resource.msg('button.notifyMe', 'product', null)}
+</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    function showModal(title, productId, notifyMeUrl) {
+        if ($('#notifyMeViewModal').length !== 0) {
+            $('#notifyMeViewModal').remove();
+        }
+        var htmlString = '<!-- Modal -->'
+            + '<div class="modal fade" id="notifyMeViewModal" role="dialog">'
+            + '<span class="enter-message sr-only" ></span>'
+            + '<div class="modal-dialog quick-view-dialog">'
+            + '<!-- Modal content-->'
+            + '<div class="modal-content">'
+            + '<div class="modal-header">'
+            + title
+            + '    <button type="button" class="close pull-right" data-dismiss="modal">'
+            + '        <span aria-hidden="true">&times;</span>'
+            + '        <span class="sr-only"> </span>'
+            + '    </button>'
+            + '</div>'
+            + '<div class="modal-body">'
+            + '<label>Phone Number:</label>'
+            + '<input type="text" id="phone" placeholder="Enter Your Phone Number" class="number" style="margin-left: 1em;" />'
+            + '<input type="hidden" id="productId" value="' + productId + '" />'
+            + '<p id="message" class="message alert alert-danger"></p>'
+            + '<p id="info" class="info alert alert-info"></p>' 
+            +'</div>'
+            + '<div class="modal-footer">'
+            + '<input type="button" value="Ok" class="check btnOk" />'
+            + '<input type="button" value="Cancel" class="check btnCancel" data-dismiss="modal" />'
+            +'</div>'
+            + '</div>'
+            + '</div>'
+            + '</div>';
+        $('body').append(htmlString);
+
+        $('#notifyMeViewModal .modal-header .close .sr-only').text('Close');
+        $('#notifyMeViewModal .enter-message').text('Send Sms Message');
+        $('#notifyMeViewModal .message').hide();
+        $('#notifyMeViewModal .info').hide();
+        $('#notifyMeViewModal').modal('show');
+
+        $('#notifyMeViewModal').on('click', '.btnOk', function (e) {
+            e.preventDefault();
+            $('.modal-body').spinner().start();
+
+            $('#notifyMeViewModal .message').hide();
+            $('#notifyMeViewModal .info').hide();
+
+            var dataModel = { productId: $('#notifyMeViewModal').find('#productId').val(), phoneNumber: $('#notifyMeViewModal').find('#phone').val() };
+                       
+            if(dataModel.phoneNumber == "") {
+                $('#notifyMeViewModal .message').html('Please enter your phone number');
+                $('#notifyMeViewModal .message').show();
+                $.spinner().stop();
+                return;
+            }
+            let regex = /^[\d,\s,\+,\-]{5,20}/;
+            if(!dataModel.phoneNumber.match(regex)) {
+                $('#notifyMeViewModal .message').html('Oops! Your phone number is invalid');
+                $('#notifyMeViewModal .message').show();
+                $.spinner().stop();
+                return;
+            }
+            $.ajax({
+                url: notifyMeUrl,
+                data: dataModel,
+                method: 'POST',
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success) {
+                        $('#notifyMeViewModal .info').html(data.message);
+                        $('#notifyMeViewModal .info').show();
+                        $('#notifyMeViewModal .btnOk').hide();
+                        $('#notifyMeViewModal .btnCancel').val('Close');
+                    } else {
+                        $('#notifyMeViewModal .message').html(data.message);
+                        $('#notifyMeViewModal .message').show();
+                    }
+                    $.spinner().stop();
+                },
+                error: function () {
+                    $('#notifyMeViewModal .message').html('Error found. Please try agein.');
+                    $('#notifyMeViewModal .message').show();
+                    $.spinner().stop();
+                }
+            });
+        });
+    }
+
+    $( document ).ready(function() {
+        $('body').on('click', '.notify-me-modal', function (e) {
+            e.preventDefault();
+
+            showModal('${Resource.msg('notifyMeViewModal.title', 'product', null)}', 
+                $(e.target).attr('data-pid'), 
+                '${URLUtils.url('Twilio-AddPhoneToSmsNotificaton').toString()}');
+        });
+    });
+</script>
